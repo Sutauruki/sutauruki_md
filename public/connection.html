@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Connection Status</title>
+    <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
+    <style>
+      body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
+      .container { text-align: center; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      #qr-code { margin: 20px auto; }
+      h1 { color: #333; }
+      .connected { background-color: #e6fffa; }
+      .connected h1 { color: #2c7a7b; }
+      .disconnected { background-color: #fff5f5; }
+      .disconnected h1 { color: #c53030; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="status-title">Checking status...</h1>
+      <p id="status-msg">Please wait...</p>
+      <div id="qr-code"></div>
+      <p id="qr-status" style="display:none;">Waiting for QR code...</p>
+    </div>
+    <script>
+      const qrContainer = document.getElementById('qr-code');
+      const statusTitle = document.getElementById('status-title');
+      const statusMsg = document.getElementById('status-msg');
+      const qrStatus = document.getElementById('qr-status');
+      const body = document.body;
+
+      async function checkStatus() {
+        try {
+          const response = await fetch('/api/status');
+          const data = await response.json();
+
+          if (data.isConnected) {
+            body.className = 'connected';
+            statusTitle.innerText = 'Bot is Connected ✅';
+            statusMsg.innerText = 'You are all set!';
+            qrContainer.innerHTML = '';
+            qrStatus.style.display = 'none';
+          } else {
+            body.className = 'disconnected';
+            statusTitle.innerText = 'Bot is Disconnected ❌';
+            statusMsg.innerText = 'Scan the QR code below to connect:';
+            
+            if (data.qr) {
+              qrContainer.innerHTML = '';
+              qrStatus.style.display = 'none';
+              QrCreator.render({
+                text: data.qr,
+                radius: 0.5,
+                ecLevel: 'H',
+                fill: '#536DFE',
+                background: null,
+                size: 256
+              }, qrContainer);
+            } else {
+              qrContainer.innerHTML = '';
+              qrStatus.style.display = 'block';
+              qrStatus.innerText = "No QR code available yet. Please wait or check logs.";
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching status:', error);
+          statusTitle.innerText = 'Error';
+          statusMsg.innerText = 'Failed to fetch status.';
+        }
+      }
+
+      // Check immediately and then every 5 seconds
+      checkStatus();
+      setInterval(checkStatus, 5000);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+baileys_auth_info/*
+db/*
+.env
+baileys_auth_info.zip
+wa-logs.txt
+node_modules
+.vscode

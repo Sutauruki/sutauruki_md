@@ -5,8 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsx build",
-    "start": "tsx run dist/index.js",
+    "start": "tsx index.ts",
     "dev": "tsx watch index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,6 +20,7 @@
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "groq-sdk": "^0.37.0",
     "nodemailer": "^7.0.11",
     "open": "^11.0.0",
     "pino": "^10.1.0",

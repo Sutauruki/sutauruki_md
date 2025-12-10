@@ -9,7 +9,7 @@ const plugin: Plugin = {
   description: "Intro of the bot owner",
   category: "fun",
 
-  run: async ({ jid, msgText, quotedMsg, msgType, caption }) => {
+  run: async ({ jid, msgText, quotedMsg, msgType, caption, sock }) => {
     try {
       const phoneNumber = process.env.PHONE_NUMBER;
       const image = process.env.OWNER_PICTURE;
@@ -21,7 +21,7 @@ const plugin: Plugin = {
       const text = ` ╭═══  *SUTAURUKI-MD* ═══\n │ Codename: Sutaruki\n │ Phone: wa.me/${phoneNumber}\n │ Github: https://github.com/Sutauruki \n │ X: https://x.com/sutauruki \n ╰═══════════`;
 
       // Send to the specified recipient
-      await sendImage(jid, image, quotedMsg, undefined, text);
+      await sendImage(sock, jid, image, quotedMsg, undefined, text);
       console.log("Intro sent to " + jid);
     } catch (e) {
       if (e instanceof Error) {

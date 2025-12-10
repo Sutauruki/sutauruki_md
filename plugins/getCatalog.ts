@@ -9,9 +9,9 @@ const plugin: Plugin = {
   description: "get catalog",
   category: "business",
 
-  run: async ({ jid}) => {
+  run: async ({ jid, sock}) => {
     try {
-        getcatalog(jid, 10)
+        getcatalog(sock, jid, 10)
         } catch (e) {
       if (e instanceof Error) {
         console.error(`Error in getCatalog plugin: ${e.message}`);

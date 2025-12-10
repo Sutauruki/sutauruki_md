@@ -1,16 +1,8 @@
 import { delay, type WASocket, type WAMessage, proto } from '@whiskeysockets/baileys'
 import axios from 'axios'
 
-let sock: WASocket | null = null
-
-export const setSock = (s: WASocket): void => {
-  sock = s
-}
-
 // Message content = msg, like message to quote = message
-export async function typing(jid: string): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
-
+export async function typing(sock: WASocket, jid: string): Promise<void> {
   await sock.presenceSubscribe(jid)
   await delay(500)
 
@@ -22,30 +14,29 @@ export async function typing(jid: string): Promise<void> {
 
 // send text with typing
 export const sendMessage = async (
+  sock: WASocket,
   jid: string,
   msgText: string,
   quotedMsg?: any,
   msgType?: string,
   caption?: string
 ): Promise<void> => {
-  if (!sock) throw new Error("Socket not set yet")
-  typing(jid)
+  typing(sock, jid)
   await sock.sendMessage(jid, { text: msgText }, { quoted: quotedMsg })
 }
 
 // send image
 export const sendImage = async (
+  sock: WASocket,
   jid: string,
   msgText: string,
   quotedMsg?: any,
   msgType?: string,
   caption?: string
 ): Promise<void> => {
-  if (!sock) throw new Error("Socket not set yet")
-
   const imagePath = msgText
 
-  typing(jid)
+  typing(sock, jid)
   await sock.sendMessage(jid, {
     image: { url: imagePath },
     caption: caption || "",
@@ -54,12 +45,11 @@ export const sendImage = async (
 
 // send audio
 export const sendAudio = async (
+  sock: WASocket,
   jid: string,
   audioPath: string,
   ptt: boolean = false
 ): Promise<void> => {
-  if (!sock) throw new Error("Socket not set yet")
-
   await sock.sendMessage(jid, {
     audio: { url: audioPath },
     ptt
@@ -67,10 +57,8 @@ export const sendAudio = async (
 }
 
 // Delete Chat
-export async function deleteMessage(jid: string): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
-  
-  const lastMsgInChat = await getLastMessageInChat(jid)
+export async function deleteMessage(sock: WASocket, jid: string): Promise<void> {
+  const lastMsgInChat = await getLastMessageInChat(sock, jid)
 
   await sock.chatModify(
     {
@@ -87,8 +75,7 @@ export async function deleteMessage(jid: string): Promise<void> {
 }
 
 // Helper function for getLastMessageInChat (you'll need to implement this)
-async function getLastMessageInChat(jid: string): Promise<WAMessage> {
-  if (!sock) throw new Error("Socket not set yet")
+async function getLastMessageInChat(sock: WASocket, jid: string): Promise<WAMessage> {
   // Implementation depends on how you store messages
   // This is a placeholder
   throw new Error("getLastMessageInChat not implemented")
@@ -96,32 +83,32 @@ async function getLastMessageInChat(jid: string): Promise<WAMessage> {
 
 // Change Profile Status
 export async function changeProfileStatus(
+  sock: WASocket,
   jid: string,
   msgText: string,
   quotedMsg?: any,
   msgType?: string,
   caption?: string
 ): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
   await sock.updateProfileStatus(`${msgText}`)
-  await sendMessage(jid, `Status: ${msgText}`, quotedMsg)
+  await sendMessage(sock, jid, `Status: ${msgText}`, quotedMsg)
 }
 
 // change Profile Picture
 export async function changeProfilePicture(
+  sock: WASocket,
   jid: string,
   msgText: string,
   quotedMsg?: any,
   msgType?: string,
   caption?: string
 ): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
   try {
     await sock.updateProfilePicture(jid, { url: msgText })
-    await sendMessage(jid, `changed profile pic`, quotedMsg)
+    await sendMessage(sock, jid, `changed profile pic`, quotedMsg)
   } catch (e) {
     if (e instanceof Error) {
-      await sendMessage(jid, `Error: ${e.message}\nurl: ${msgText}`)
+      await sendMessage(sock, jid, `Error: ${e.message}\nurl: ${msgText}`)
       throw new Error(e.message)
     }
     throw e
@@ -130,16 +117,16 @@ export async function changeProfilePicture(
 
 // fetch profile picture
 export async function fetchProfilePicture(
+  sock: WASocket,
   jid: string,
   msgText?: string,
   quotedMsg?: any,
   msgType?: string,
   caption?: string
 ): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
   try {
     const ppUrl = await sock.profilePictureUrl(jid, 'image')
-    await sendImage(jid, ppUrl!, quotedMsg)
+    await sendImage(sock, jid, ppUrl!, quotedMsg)
   } catch (e) {
     if (e instanceof Error) {
       throw new Error(e.message)
@@ -150,16 +137,16 @@ export async function fetchProfilePicture(
 
 // Change ProfileName
 export async function changeProfileName(
+  sock: WASocket,
   jid: string,
   msgText: string,
   quotedMsg?: any,
   msgType?: string,
   caption?: string
 ): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
   try {
     await sock.updateProfileName(msgText)
-    await sendMessage(jid, msgText, quotedMsg)
+    await sendMessage(sock, jid, msgText, quotedMsg)
   } catch (e) {
     if (e instanceof Error) {
       throw new Error(e.message)
@@ -170,16 +157,16 @@ export async function changeProfileName(
 
 // Change Groupname
 export async function changeGroupName(
+  sock: WASocket,
   jid: string,
   msgText: string,
   quotedMsg?: any,
   msgType?: string,
   caption?: string
 ): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
   try {
     await sock.groupUpdateSubject(jid, msgText)
-    await sendMessage(jid, `Group Subject has been updated to ${msgText}`, quotedMsg)
+    await sendMessage(sock, jid, `Group Subject has been updated to ${msgText}`, quotedMsg)
   } catch (e) {
     if (e instanceof Error) {
       throw new Error(e.message)
@@ -190,16 +177,16 @@ export async function changeGroupName(
 
 // Change Group description
 export async function changeGroupDescription(
+  sock: WASocket,
   jid: string,
   msgText: string,
   quotedMsg?: any,
   msgType?: string,
   caption?: string
 ): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
   try {
     await sock.groupUpdateDescription(jid, msgText)
-    await sendMessage(jid, msgText, quotedMsg)
+    await sendMessage(sock, jid, msgText, quotedMsg)
   } catch (e) {
     if (e instanceof Error) {
       throw new Error(e.message)
@@ -209,8 +196,7 @@ export async function changeGroupDescription(
 }
 
 // Only Admin
-export async function onlyAdminMessage(jid: string): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
+export async function onlyAdminMessage(sock: WASocket, jid: string): Promise<void> {
   try {
     await sock.groupSettingUpdate(jid, 'announcement')
     await sock.groupSettingUpdate(jid, 'locked')
@@ -223,8 +209,7 @@ export async function onlyAdminMessage(jid: string): Promise<void> {
 }
 
 // Everyone
-export async function everyoneMessage(jid: string): Promise<void> {
-  if (!sock) throw new Error("Socket not set yet")
+export async function everyoneMessage(sock: WASocket, jid: string): Promise<void> {
   try {
     await sock.groupSettingUpdate(jid, 'not_announcement')
     await sock.groupSettingUpdate(jid, 'unlocked')
@@ -237,8 +222,7 @@ export async function everyoneMessage(jid: string): Promise<void> {
 }
 
 // fetch group data
-export async function getGroupMetadata(jid: string): Promise<any> {
-  if (!sock) throw new Error("Socket not set yet")
+export async function getGroupMetadata(sock: WASocket, jid: string): Promise<any> {
   const metadata = await sock.groupMetadata(jid)
   return metadata
 }

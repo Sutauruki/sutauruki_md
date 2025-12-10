@@ -14,7 +14,7 @@ const plugin: Plugin = {
   description: "Show all available commands",
   category: "info",
 
-  run: async ({ jid, msgText, quotedMsg, msgType, caption }) => {
+  run: async ({ jid, msgText, quotedMsg, msgType, caption, sock }) => {
     try {
       // Load plugins fresh each time to get latest list
       const plugins = await loadPlugins();
@@ -114,7 +114,7 @@ const plugin: Plugin = {
       menuText += `*Type any command to get started!*`;
 
       // Send the menu
-      await sendMessage(jid, menuText);
+      await sendMessage(sock, jid, menuText);
 
       console.log("Menu sent to " + jid);
     } catch (e) {

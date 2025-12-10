@@ -6,10 +6,10 @@ const plugin: Plugin = {
   description: "Change your group name",
   category: "whatsapp",
 
-  run: async ({ jid, msgText, quotedMsg, msgType, caption }) => {
+  run: async ({ jid, msgText, quotedMsg, msgType, caption, sock }) => {
     try {
       if (msgText) {
-        await changeGroupName(jid, msgText, quotedMsg);
+        await changeGroupName(sock, jid, msgText, quotedMsg);
       }
     } catch (e) {
       if (e instanceof Error) {

@@ -1,3 +1,4 @@
+
 import { delay, type WASocket, type WAMessage, proto, generateWAMessageFromContent,  } from '@whiskeysockets/baileys'
 import { sendMessage, sendImage } from './whatsappService.js'
 import type { AnyMessageContent, WAMediaUpload } from '@whiskeysockets/baileys'
@@ -8,22 +9,13 @@ import {
 import dotenv from "dotenv"
 dotenv.config()
 
-let sock: WASocket | null = null
-let botNumber: string | null = null
-
-export const setBusinessSock = (s: WASocket): void => {
-  sock = s
-}
-
-export const getcatalog = async (jid: string, limit: number = 10): Promise<void> => {
-  if (!sock) throw new Error('businessSocket not set yet');
-
+export const getcatalog = async (sock: WASocket, jid: string, limit: number = 10): Promise<void> => {
   // Fetch catalog
   const data = await sock.getCatalog({ jid, limit, cursor: '' });
   const products = data.products;
 
   if (!products || products.length === 0) {
-    await sendMessage(jid, 'No products found');
+    await sendMessage(sock, jid, 'No products found');
     return;
   }
 
@@ -39,21 +31,19 @@ export const getcatalog = async (jid: string, limit: number = 10): Promise<void>
     text += `.....................\n\n`
     
   }
-await sendMessage(jid, text);
+await sendMessage(sock, jid, text);
 };
 
-export const createProduct = async (jid: string, name: string, price: number, description: string, images : WAMediaUpload[], currency: string): Promise<void> => {
-  if (!sock) throw new Error('businessSocket not set yet');
-
+export const createProduct = async (sock: WASocket, jid: string, name: string, price: number, description: string, images : WAMediaUpload[], currency: string): Promise<void> => {
   // //Get User Store ID
   const user = await userFunctions().getUser({ phoneNumber: sock.user?.id?.split(':')[0] || null })
   if (!user.success) {
-    await sendMessage(jid, `${user.message}`)
+    await sendMessage(sock, jid, `${user.message}`)
     return
   }
   const stores = user.user.stores
   if (!stores || stores.length === 0) {
-    await sendMessage(jid, 'No stores found')
+    await sendMessage(sock, jid, 'No stores found')
     return
   }
   const storeId = stores[0]!.storeId
@@ -100,7 +90,7 @@ export const createProduct = async (jid: string, name: string, price: number, de
     images
   })
 
-  await sendMessage(jid, `Product created successfully`);
+  await sendMessage(sock, jid, `Product created successfully`);
   await delay(60000);
-  await getcatalog(jid);
+  await getcatalog(sock, jid);
 };

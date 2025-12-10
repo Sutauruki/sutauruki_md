@@ -9,13 +9,14 @@ import {
     description: "to change personal/group profile picture",
     category: "whatsapp",
   
-    run: async ({ jid, msgText, quotedMsg, msgType, caption }) => {
+    run: async ({ jid, msgText, quotedMsg, msgType, caption, sock }) => {
       try {
         if (msgText && msgText.length > 3) {
           // Either URL from text parameter or image URL from your server logic
-          await changeProfilePicture(jid, msgText, quotedMsg);
+          await changeProfilePicture(sock, jid, msgText, quotedMsg);
         } else {
           await sendMessage(
+            sock,
             jid,
             "Usage:\n• Quote an image and use .changeprofilepicture\n• Or use .changeprofilepicture https://example.com/image.jpg"
           );

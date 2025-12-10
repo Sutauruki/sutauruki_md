@@ -6,9 +6,9 @@ const plugin: Plugin = {
   description: "Fetch Personal/Group Profile Picture",
   category: "whatsapp",
 
-  run: async ({ jid, msgText, quotedMsg, msgType, caption }) => {
+  run: async ({ jid, msgText, quotedMsg, msgType, caption, sock }) => {
     try {
-      await fetchProfilePicture(jid, undefined, quotedMsg);
+      await fetchProfilePicture(sock, jid, undefined, quotedMsg);
     } catch (e) {
       if (e instanceof Error) {
         console.log("Error in fetchpp plugin: " + e.message);

@@ -6,7 +6,7 @@ const plugin: Plugin = {
   description: "Show live time of your timezone",
   category: "info",
 
-  run: async ({ jid, msgText, quotedMsg, msgType, caption }) => {
+  run: async ({ jid, msgText, quotedMsg, msgType, caption, sock }) => {
     try {
       const now = new Date();
       const hours = now.getHours();
@@ -38,7 +38,7 @@ const plugin: Plugin = {
 ╰────────────────╯
 `;
 
-      await sendMessage(jid, timenow);
+      await sendMessage(sock, jid, timenow);
       console.log("live Info sent to " + jid);
     } catch (error) {
       console.error("Error in live plugin:", error);

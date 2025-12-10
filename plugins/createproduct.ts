@@ -8,7 +8,7 @@ const plugin: Plugin = {
   description: "To Create Product",
   category: "business",
 
-  run: async ({ jid, msgText, quotedMsg, messageType, caption, newtext, senderId, quotedMessage, msgTime  }) => {
+  run: async ({ jid, msgText, quotedMsg, messageType, caption, newtext, senderId, quotedMessage, msgTime, sock  }) => {
     try {
         // Function for parsing
         function parseProduct(raw: string) {
@@ -50,7 +50,7 @@ const plugin: Plugin = {
           price: 10\n
           description: A comfortable T-Shirt\n
           images: https://example.com/image1.jpg,https://example.com/image2.jpg\n`
-          await sendMessage(jid, text)
+          await sendMessage(sock, jid, text)
 
           return
         }
@@ -58,6 +58,7 @@ const plugin: Plugin = {
         const data = parseProduct(msgText!)
 
         await createProduct(
+        sock,
         jid,
         data.name,
         data.price,
@@ -70,6 +71,6 @@ const plugin: Plugin = {
       console.error("Error in createproduct plugin:", error);
     }
     },
-};
+  };
 
 export default plugin;

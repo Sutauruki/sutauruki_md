@@ -6,9 +6,9 @@ const plugin: Plugin = {
   description: "Change group setting to only admin",
   category: "whatsapp",
 
-  run: async ({ jid }) => {
+  run: async ({ jid, sock }) => {
     try {
-      await onlyAdminMessage(jid);
+      await onlyAdminMessage(sock, jid);
     } catch (e) {
       if (e instanceof Error) {
         console.log("Error in lock plugin: " + e.message);

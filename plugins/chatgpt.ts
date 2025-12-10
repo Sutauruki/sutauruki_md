@@ -10,7 +10,7 @@ const plugin: Plugin = {
   description: "to chat with openai/gpt-oss-20b",
   category: "ai",
 
-  run: async ({ jid, msgText, quotedMsg, msgType, caption }) => {
+  run: async ({ jid, msgText, quotedMsg, msgType, caption, sock }) => {
     try {
       if (msgText && msgText.length > 3) {
         // Get AI response
@@ -22,11 +22,11 @@ const plugin: Plugin = {
           Message: ${msgText}`
         );
         // Send AI response
-        await sendMessage(jid, aiResponse);
+        await sendMessage(sock, jid, aiResponse);
       } else {
         const text =
           "To use \n*.chatgpt* followed by text > 3\n> eg .chatgpt Explain Quantum Physics";
-        await sendMessage(jid, text);
+        await sendMessage(sock, jid, text);
       }
     } catch (e) {
       if (e instanceof Error) {

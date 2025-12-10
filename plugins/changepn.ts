@@ -6,10 +6,10 @@ const plugin: Plugin = {
   description: "Change your personal Profile name",
   category: "whatsapp",
 
-  run: async ({ jid, msgText, quotedMsg, msgType, caption }) => {
+  run: async ({ jid, msgText, quotedMsg, msgType, caption, sock }) => {
     try {
       if (msgText) {
-        await changeProfileName(jid, msgText, quotedMsg);
+        await changeProfileName(sock, jid, msgText, quotedMsg);
       }
     } catch (e) {
       if (e instanceof Error) {

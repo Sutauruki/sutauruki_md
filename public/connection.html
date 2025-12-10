@@ -1,76 +1,140 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connection Status</title>
     <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
     <style>
-      body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
-      .container { text-align: center; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-      #qr-code { margin: 20px auto; }
-      h1 { color: #333; }
-      .connected { background-color: #e6fffa; }
-      .connected h1 { color: #2c7a7b; }
-      .disconnected { background-color: #fff5f5; }
-      .disconnected h1 { color: #c53030; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .container { text-align: center; padding: 2.5rem; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; width: 90%; }
+        #qr-code { margin: 20px auto; display: flex; justify-content: center; }
+        h1 { color: #2c3e50; margin-bottom: 0.5rem; font-size: 1.5rem; }
+        p { color: #666; margin-bottom: 1.5rem; }
+        
+        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; margin-bottom: 1rem; }
+        .connected { background-color: #d1e7dd; color: #0f5132; }
+        .disconnected { background-color: #f8d7da; color: #842029; }
+        
+        .back-link { display: block; margin-top: 2rem; color: #3498db; text-decoration: none; font-weight: 500; }
+        .back-link:hover { text-decoration: underline; }
+
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <h1 id="status-title">Checking status...</h1>
-      <p id="status-msg">Please wait...</p>
-      <div id="qr-code"></div>
-      <p id="qr-status" style="display:none;">Waiting for QR code...</p>
+        <h1 id="session-title">Session Status</h1>
+        <div id="status-badge" class="status-badge disconnected">Checking...</div>
+        
+        <div id="qr-container">
+            <div id="qr-code"></div>
+            <div id="spinner" class="spinner"></div>
+            <p id="qr-status">Waiting for QR code...</p>
+        </div>
+
+        <a href="/" class="back-link">← Back to Dashboard</a>
     </div>
+
     <script>
-      const qrContainer = document.getElementById('qr-code');
-      const statusTitle = document.getElementById('status-title');
-      const statusMsg = document.getElementById('status-msg');
-      const qrStatus = document.getElementById('qr-status');
-      const body = document.body;
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('sessionId');
+        
+        const sessionTitle = document.getElementById('session-title');
+        const statusBadge = document.getElementById('status-badge');
+        const qrContainer = document.getElementById('qr-code');
+        const qrStatus = document.getElementById('qr-status');
+        const spinner = document.getElementById('spinner');
 
-      async function checkStatus() {
-        try {
-          const response = await fetch('/api/status');
-          const data = await response.json();
+        if (!sessionId) {
+            sessionTitle.innerText = 'Error';
+            statusBadge.style.display = 'none';
+            qrStatus.innerText = 'No Session ID provided.';
+            throw new Error('No session ID');
+        }
 
-          if (data.isConnected) {
-            body.className = 'connected';
-            statusTitle.innerText = 'Bot is Connected ✅';
-            statusMsg.innerText = 'You are all set!';
+        sessionTitle.innerText = `Session: ${sessionId}`;
+
+        async function checkStatus() {
+            try {
+                // Check connection status first
+                const statusResponse = await fetch('/api/status');
+                const statusData = await statusResponse.json();
+                const session = statusData.sessions.find(s => s.sessionId === sessionId);
+
+                if (session && session.isConnected) {
+                    showConnected();
+                } else {
+                    // Not connected, try to get QR
+                    showDisconnected();
+                    await fetchQR();
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        function showConnected() {
+            statusBadge.className = 'status-badge connected';
+            statusBadge.innerText = 'Connected ✅';
             qrContainer.innerHTML = '';
             qrStatus.style.display = 'none';
-          } else {
-            body.className = 'disconnected';
-            statusTitle.innerText = 'Bot is Disconnected ❌';
-            statusMsg.innerText = 'Scan the QR code below to connect:';
+            spinner.style.display = 'none';
+        }
+
+        function showDisconnected() {
+            statusBadge.className = 'status-badge disconnected';
+            statusBadge.innerText = 'Disconnected ❌';
+        }
+
+        async function fetchQR() {
+            try {
+                const response = await fetch(`/sessions/${sessionId}/qr`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.qr) {
+                        renderQR(data.qr);
+                    } else {
+                        showWaiting();
+                    }
+                } else {
+                    if (response.status === 404) {
+                         // Session might not exist or just created and no QR yet
+                         showWaiting();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching QR:', error);
+            }
+        }
+
+        function renderQR(qrCode) {
+            qrContainer.innerHTML = '';
+            qrStatus.style.display = 'none';
+            spinner.style.display = 'none';
             
-            if (data.qr) {
-              qrContainer.innerHTML = '';
-              qrStatus.style.display = 'none';
-              QrCreator.render({
-                text: data.qr,
+            QrCreator.render({
+                text: qrCode,
                 radius: 0.5,
                 ecLevel: 'H',
-                fill: '#536DFE',
+                fill: '#2c3e50',
                 background: null,
                 size: 256
-              }, qrContainer);
-            } else {
-              qrContainer.innerHTML = '';
-              qrStatus.style.display = 'block';
-              qrStatus.innerText = "No QR code available yet. Please wait or check logs.";
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching status:', error);
-          statusTitle.innerText = 'Error';
-          statusMsg.innerText = 'Failed to fetch status.';
+            }, qrContainer);
         }
-      }
 
-      // Check immediately and then every 5 seconds
-      checkStatus();
-      setInterval(checkStatus, 5000);
+        function showWaiting() {
+            qrContainer.innerHTML = '';
+            qrStatus.style.display = 'block';
+            qrStatus.innerText = 'Waiting for QR code...';
+            spinner.style.display = 'block';
+        }
+
+        // Initial check and polling
+        checkStatus();
+        setInterval(checkStatus, 3000);
     </script>
-  </body>
+</body>
 </html>

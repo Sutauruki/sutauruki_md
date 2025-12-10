@@ -6,9 +6,9 @@ const plugin: Plugin = {
   description: "Change group setting to everyone",
   category: "whatsapp",
 
-  run: async ({ jid }) => {
+  run: async ({ jid, sock }) => {
     try {
-      await everyoneMessage(jid);
+      await everyoneMessage(sock, jid);
     } catch (e) {
       if (e instanceof Error) {
         console.log("Error in unlock plugin: " + e.message);

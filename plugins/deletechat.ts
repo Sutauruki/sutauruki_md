@@ -6,9 +6,9 @@ const plugin: Plugin = {
   description: "to delete the last chat",
   category: "whatsapp",
 
-  run: async ({ jid }) => {
+  run: async ({ jid, sock }) => {
     try {
-      await deleteMessage(jid);
+      await deleteMessage(sock, jid);
     } catch (e) {
       if (e instanceof Error) {
         console.log("Error in deletemessage plugin: " + e.message);

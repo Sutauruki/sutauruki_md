@@ -29,7 +29,7 @@ export default {
 
   run: async ({ jid, msgText, quotedMsg, messageType, caption, quotedMessage, sock }: PluginParams) => {
     if (!quotedMessage || !quotedMessage.message) {
-      return await sendMessage(jid, 'Reply to a view once message to save it')
+      return await sendMessage(sock, jid, 'Reply to a view once message to save it')
     }
 
     try {
@@ -43,7 +43,7 @@ export default {
       
       const innerType = getContentType(actualMessage)
       if (!innerType) {
-        return await sendMessage(jid, 'Could not determine message type')
+        return await sendMessage(sock, jid, 'Could not determine message type')
       }
       
       // Type-safe viewOnce check
@@ -51,7 +51,7 @@ export default {
       const isViewOnce = (mediaMessage as any)?.viewOnce === true || messageType === 'viewOnceMessageV2'
       
       if (!isViewOnce) {
-        return await sendMessage(jid, 'This is not a view once message')
+        return await sendMessage(sock, jid, 'This is not a view once message')
       }
 
       // Download media
@@ -76,11 +76,11 @@ export default {
         await sock.sendMessage(jid, { audio: buffer, mimetype: 'audio/mp4' })
       }
 
-      await sendMessage(jid, 'ViewOnce saved successfully')
+      await sendMessage(sock, jid, 'ViewOnce saved successfully')
       
     } catch (error) {
       console.log('Error saving viewonce:', (error as Error).message)
-      await sendMessage(jid, `Failed to save: ${(error as Error).message}`)
+      await sendMessage(sock, jid, `Failed to save: ${(error as Error).message}`)
     }
   }
 }

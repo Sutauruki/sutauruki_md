@@ -199,7 +199,7 @@ async function handleMessage(sock: WASocket, msg: IWebMessageInfo) {
         if (!text) return;
 
         const cmd = text.slice(1).split(" ")[0];
-        if (text.startsWith(".")) {
+        if (text.startsWith("*")) {
             for (const plugin of plugins) {
                 if (plugin.pattern === cmd) {
                     try {
